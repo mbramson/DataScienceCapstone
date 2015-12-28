@@ -17,14 +17,14 @@ The original datasets as well as documentation can be found at http://www.corpor
 knitr::opts_chunk$set(warning=FALSE)
 ```
 
-```{r load_packages}
+```{r load_packages, message=FALSE}
 library(quanteda)
 library(RColorBrewer)
 ```
 
 ## Building Corpora
 
-```{r load_corpora}
+```{r load_corpora, message=FALSE}
 tweet.con <- file("en_US.twitter.txt")
 tweet.corpus <- corpus(readLines(tweet.con))
 close(tweet.con)
