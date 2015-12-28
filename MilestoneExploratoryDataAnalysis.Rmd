@@ -1,0 +1,55 @@
+---
+title: "MilestoneExploratoryDataAnalysis"
+author: "Mathew Bramson"
+date: "December 27, 2015"
+output: html_document
+---
+
+
+```{r load_packages}
+suppressWarnings(library(quanteda))
+library(RColorBrewer)
+```
+
+```{r load_corpus}
+tweet.con <- file("en_US.twitter.txt")
+tweet.corpus <- corpus(readLines(tweet.con))
+close(tweet.con)
+
+blog.con <- file("en_US.blogs.txt")
+blog.corpus <- corpus(readLines(blog.con))
+close(blog.con)
+
+news.con <- file("en_US.news.txt", open="rb")
+news.corpus <- corpus(readLines(news.con, encoding="UTF-8"))
+close(news.con)
+```
+
+```{r tidy_connections, echo=FALSE}
+rm(tweet.con, blog.con, news.con)
+```
+
+```{r add_metadata}
+docvars(tweet.corpus, "type") <- "tweet"
+docvars(blog.corpus, "type") <- "blog"
+docvars(news.corpus, "type") <- "news"
+```
+
+```{r tweet_dfm}
+tweet.dfm <- dfm(tweet.corpus, ignoredFeatures = stopwords("english"))
+plot(tweet.dfm, max.words=100, colors = brewer.pal(6, "Dark2"), scale=c(3, .5))
+```
+
+```{r blog_dfm}
+blog.dfm <- dfm(blog.corpus, ignoredFeatures = stopwords("english"))
+plot(blog.dfm, max.words=100, colors = brewer.pal(6, "Dark2"), scale=c(4, .5))
+```
+
+```{r news_dfm}
+news.dfm <- dfm(news.corpus, ignoredFeatures = stopwords("english"))
+plot(news.dfm, max.words=100, colors = brewer.pal(6, "Dark2"), scale=c(3, .5))
+```
+
+```{r combine_corpora}
+total.corpus <- tweet.corpus + blog.corpus + news.corpus
+```
