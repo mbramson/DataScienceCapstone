@@ -27,7 +27,7 @@ library(ggplot2)
 
 ### Subsetting the Data
 
-For this report the data will be subsetted to 10% of the original data so that it can be constructed in a manageable amount of time.
+For this report the data will be subsetted to 2% of the original data so that it can be constructed in a manageable amount of time.
 ```{r subsetting, echo=FALSE}
 set.seed(800)
 ```
@@ -36,7 +36,7 @@ set.seed(800)
 tweet.con <- file("en_US.twitter.txt", open="rb")
 tweet.vector <- readLines(tweet.con, encoding="UTF-8")
 tweet.count <- length(tweet.vector)
-tweet.subset <- sample(tweet.vector, size=tweet.count * 0.10, replace = FALSE)
+tweet.subset <- sample(tweet.vector, size=tweet.count * 0.02, replace = FALSE)
 tweet.corpus <- corpus(tweet.subset)
 close(tweet.con)
 ```
@@ -49,7 +49,7 @@ rm(tweet.subset, tweet.vector, tweet.con)
 blog.con <- file("en_US.blogs.txt", open="rb")
 blog.vector <- readLines(blog.con, encoding="UTF-8")
 blog.count <- length(blog.vector)
-blog.subset <- sample(blog.vector, size=blog.count * 0.10, replace = FALSE)
+blog.subset <- sample(blog.vector, size=blog.count * 0.02, replace = FALSE)
 blog.corpus <- corpus(blog.subset)
 close(blog.con)
 ```
@@ -62,7 +62,7 @@ rm(blog.subset, blog.vector, blog.con)
 news.con <- file("en_US.news.txt", open="rb")
 news.vector <- readLines(news.con, encoding="UTF-8")
 news.count <- length(news.vector)
-news.subset <- sample(news.vector, size=news.count * 0.10, replace = FALSE)
+news.subset <- sample(news.vector, size=news.count * 0.02, replace = FALSE)
 news.corpus <- corpus(news.subset)
 close(news.con)
 ```
@@ -71,57 +71,129 @@ close(news.con)
 rm(news.subset, news.vector, news.con)
 ```
 
+```{r add_metadata}
+docvars(tweet.corpus, "type") <- "tweet"
+docvars(blog.corpus, "type") <- "blog"
+docvars(news.corpus, "type") <- "news"
+```
+
+```{r combine_corpora}
+corpus <- tweet.corpus + blog.corpus + news.corpus
+```
+
+```{r tidy_objects, echo=FALSE}
+rm(tweet.corpus, blog.corpus, news.corpus)
+```
+
 # Exploratory Data Analysis
 
 ## Document Feature Matrix Creation
-```{r tweet_dfm}
-tweet.dfm <- dfm(tweet.corpus, ignoredFeatures = stopwords("english"), stem=TRUE)
+
+This project used the Quanteda package's document feature matrix functionality to handle various pre-processing steps that would need to be handled in multiple steps using tm_map in the tm map. It also has improved performance.
+
+```{r dfm_creation}
+dfm <- dfm(corpus, ignoredFeatures = stopwords("english"), stem=TRUE)
 ```
 
-```{r blog_dfm}
-blog.dfm <- dfm(blog.corpus, ignoredFeatures = stopwords("english"), stem=TRUE)
-```
+## Word Cloud
 
-```{r news_dfm}
-news.dfm <- dfm(news.corpus, ignoredFeatures = stopwords("english"), stem=TRUE)
-```
-
-## Word Clouds
-
-###Tweets
+Quanteda allows us to very easily plot Word clouds, as they are the default plot output for Document Feature Matrices.
 
 ```{r tweet_wordclouds}
-plot(tweet.dfm, max.words=30, colors = brewer.pal(6, "Dark2"), scale=c(4, .5))
-```
-
-### Blogs
-
-```{r blog_wordcloud}
-plot(blog.dfm, max.words=30, colors = brewer.pal(6, "Dark2"), scale=c(4, .5))
-```
-
-### News
-
-```{r news_wordcloud}
-plot(news.dfm, max.words=30, colors = brewer.pal(6, "Dark2"), scale=c(4, .5))
+plot(dfm, max.words=30, colors = brewer.pal(6, "Dark2"), scale=c(4, .5))
 ```
 
 ## Top Features
 
-### Tweets
+Using Quanteda, we can easily extract the top features from our Document Feature Matrix.
 
 ```{r tweet_top_features}
-topfeatures(tweet.dfm, n=30)
+top.features <- topfeatures(dfm, n=30)
+top.features.df <- data.frame(top.features)
+top.features.df["unigram"] <- rownames(top.features.df)
+top.features.plot <- ggplot(top.features.df, aes(x=reorder(unigram, -top.features), y=top.features))
+top.features.plot <- top.features.plot + geom_bar(position = "identity", stat = "identity")
+top.features.plot <- top.features.plot + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                                         xlab("Feature") + ylab("Count")
+top.features.plot
 ```
 
-### Blogs
+# n-grams
 
-```{r blog_top_features}
-topfeatures(blog.dfm, n=30)
+An n-gram allows us to see which words tend to occur in close frequency to one another. A unigram is simply a word by itself. A bigram, however is two words occuring next to one another. A trigram is three words occuring consecutively, and so on.
+
+Using n-grams we can make predictions about what word is likely to come next, given a word or multiple words. These predictions come from having observed them and constructed n-grams from some source text. In this document our source text consists of tweets, blog articles, and news articles. Here I will show the most common bigrams and trigrams from the source data.
+
+###Bigrams
+
+```{r bigram_threshold_set, echo=FALSE}
+bigram.frequency.threshold <- 10
+bigram.top.feature.count <- 30
 ```
 
-### News
+We will construct our bigrams and then prune out all bigrams which have less than `r bigram.frequency.threshold` occurences in the source texts. We will then plot the top `r bigram.top.feature.count` occuring bigrams.
 
-```{r news_top_features}
-topfeatures(news.dfm, n=30)
+```{r bigram}
+dfm.bigram <- dfm(corpus, ignoredFeatures = stopwords("english"), stem=TRUE, ngrams=2)
+bigram.frequency <- colSums(dfm.bigram)
+bigram.frequency <- sort(bigram.frequency, decreasing=TRUE)
+bigram.frequency.pruned <- as.numeric()
+for (i in 1:length(bigram.frequency)) {
+  if (bigram.frequency[i] > bigram.frequency.threshold){
+    bigram.frequency.pruned <- c(bigram.frequency.pruned, bigram.frequency[i])
+  }
+}
 ```
+
+```{r bigram_plot, echo=FALSE}
+bigram.df <- data.frame(bigram.frequency.pruned[seq(bigram.top.feature.count)])
+names(bigram.df) <- "bigram.count"
+bigram.df["bigram"] <- rownames(bigram.df)
+
+bigram.plot <- ggplot(bigram.df, aes(x=reorder(bigram, -bigram.count), y=bigram.count))
+bigram.plot <- bigram.plot + geom_bar(position = "identity", stat = "identity")
+bigram.plot <- bigram.plot + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                                         xlab("Bigram") + ylab("Count")
+bigram.plot
+```
+
+###Trigrams
+
+```{r trigram_threshold_set, echo=FALSE}
+trigram.frequency.threshold <- 10
+trigram.top.feature.count <- 30
+```
+
+We will do the same procedure for trigrams that we did with bigrams. This time, we will prune out trigrams occuring less than `r trigram.frequency.threshold` times. We will then plot the top `r trigram.top.feature.count` occuring trigrams.
+
+```{r trigram}
+dfm.trigram <- dfm(corpus, ignoredFeatures = stopwords("english"), stem=TRUE, ngrams=3)
+trigram.frequency <- colSums(dfm.trigram)
+trigram.frequency <- sort(trigram.frequency, decreasing=TRUE)
+trigram.frequency.pruned <- as.numeric()
+for (i in 1:length(trigram.frequency)) {
+  if (trigram.frequency[i] > trigram.frequency.threshold){
+    trigram.frequency.pruned <- c(trigram.frequency.pruned, trigram.frequency[i])
+  }
+}
+```
+
+```{r trigram_plot, echo=FALSE}
+trigram.df <- data.frame(trigram.frequency.pruned[seq(trigram.top.feature.count)])
+names(trigram.df) <- "trigram.count"
+trigram.df["trigram"] <- rownames(trigram.df)
+
+trigram.plot <- ggplot(trigram.df, aes(x=reorder(trigram, -trigram.count), y=trigram.count))
+trigram.plot <- trigram.plot + geom_bar(position = "identity", stat = "identity")
+trigram.plot <- trigram.plot + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                                         xlab("Trigram") + ylab("Count")
+trigram.plot
+```
+
+# Next Steps
+
+I've been able to produce ngrams from the corpora with the help of the Quanteda package. The obvious next step is to use the ngrams that have been produced to predict the next word in a sequence. To do this, I will implement some form of the stupid backoff algorithm. This basically searches through the largest magnitude ngram that matches the text that it can find, and then predicts using that ngram. 
+
+For example if the sequence is "the fox jumped over the" it wills earch for that pentagram. If it finds it, it will have the ability to predict the next word. If that pentagram is not encountered in the source text, it will search for the quadgram "fox jumped over the". If that exists it will use the resulting probablilities to predict the next word and so on all the way down to bigrams.
+
+I haven't decided how to handle the case of no matches whatsoever, as this will surely come up. One option is to simply pick a unigram at random, although this may result in some bizarre sentences! If this occurs too often, the better solution would be to increase the size of the training corpora.
