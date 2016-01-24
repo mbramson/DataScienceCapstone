@@ -2,11 +2,22 @@ library(shiny)
 
 shinyUI(pageWithSidebar(
   
-  headerPanel("Twitter Data NLP Manipulation"),
+  headerPanel("N-Gram World Prediction"),
   
-  sidebarPanel(),
+  sidebarPanel(
+    
+    textInput("text_input", "Text Input:", value = ""),
+    submitButton('Submit')
+    
+  ),
   
-  mainPanel()
+  mainPanel(
+    tabsetPanel(type="tabs",
+      tabPanel("Prediction",
+        verbatimTextOutput("predicted_word")
+      )
+    )
+  )
   
   )
 )

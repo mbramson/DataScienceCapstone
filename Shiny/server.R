@@ -1,23 +1,20 @@
 # Load packages
 library(shiny)
-library(quanteda)
+library(data.table)
+library(stylo)
 
-# Load Corpora
-tweet.con <- file("en_US.twitter.txt")
-tweet.corpus <- corpus(readLines(tweet.con))
-close(tweet.con)
-
-blog.con <- file("en_US.blogs.txt")
-blog.corpus <- corpus(readLines(blog.con))
-close(blog.con)
-
-news.con <- file("en_US.news.txt", open="rb")
-news.corpus <- corpus(readLines(news.con, encoding="UTF-8"))
-close(news.con)
+source("PredictionModel.R")
 
 # Output
 shinyServer(function(input,output) {
   
+  PredictionTable <- reactive({
+    build_prediction_table(input$text_input)
+  })
+  
+  output$predicted_word <- renderText({
+    PredictionTable()[1]$WORD
+  })
 
   }
 )
