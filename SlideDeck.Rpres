@@ -1,0 +1,33 @@
+Johns Hopkins Capstone Project Slide Deck
+========================================================
+author: Mathew Bramson
+date: January 24, 2016
+
+App Overview
+========================================================
+
+The word prediction app can be access at this URL: https://mbramson.shinyapps.io/NGramWordPrediction/
+
+![Main Screen](PredictionMainScreen.png)
+
+Features
+========================================================
+
+- Prediction Ranking
+- Plotting of Predicted Words
+![Prediction Plot](PredictionPlot.png)
+
+Data Source
+========================================================
+The source data consists of various corpora scraped from publicly available sources. The original datasets as well as documentation can be found at http://www.corpora.heliohost.org/
+
+Algorithm Detail
+========================================================
+
+1. Load N-Gram frequency tables
+2. Process input text from the user
+3. Compare the input text to text already observed in the N-Gram frequency tables
+4. Start at the highest magnitude n-gram frequency table (app uses 6-grams) and see if there is a match for the input text
+5. If any number of matches occurs, aggregate identical matches and then calculate probabilities for each aggregated match (number of occurrences / total occurrences)
+6. Predict the word with the greatest probability
+7. If no matches occur for this n-gram level, decreases n by one and repeat steps 3-6
