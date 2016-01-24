@@ -26,7 +26,16 @@ shinyUI(pageWithSidebar(
         dataTableOutput('prediction_table')),
       tabPanel("Plot",
         h3("Plot of Predicted Words"),
-        plotOutput("prediction_plot"))
+        plotOutput("prediction_plot")),
+      tabPanel("About",
+        h3("About this App"),
+        p("Author: Mathew Bramson"),
+        p("Date: January 24th, 2016"),
+        p("The source data consists of various corpora scraped from publicly available sources. 
+          The original datasets as well as documentation can be found at http://www.corpora.heliohost.org/"),
+        p("This App was designed for the Capstone course of the Johns Hopkins Data Science Specialization.")
+      )
+      
     )
   )
   
