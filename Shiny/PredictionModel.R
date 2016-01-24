@@ -64,8 +64,8 @@ build_prediction_table <- function(text) {
 
 process_input_text <- function(input_text) {
   # process input text in the same way that we processed our training data using stylo
-  text_split <- txt.to.words.ext(text, language="English.contr", preserve.case = FALSE)
-  text_split <- gsub("\\^", "'", text)
+  text_split <- txt.to.words.ext(input_text, language="English.contr", preserve.case = FALSE)
+  text_split <- gsub("\\^", "'", text_split)
   # If the number of words is > 5, only use the last 5 words.
   n_words <- length(text_split)
   if (n_words > 5) {
