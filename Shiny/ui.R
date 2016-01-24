@@ -7,8 +7,12 @@ shinyUI(pageWithSidebar(
   sidebarPanel(
     
     textInput("text_input", "Text Input:", value = ""),
-    submitButton('Submit')
-    
+    submitButton('Submit'),
+    br(),
+    h3("Instructions:"),
+    p("1. Type a phrase into the Text Box"),
+    p('2. Click the "Submit" button'),
+    p("3. Select a tab to view prediction output")
   ),
   
   mainPanel(
