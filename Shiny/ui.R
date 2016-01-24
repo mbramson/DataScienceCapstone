@@ -14,11 +14,15 @@ shinyUI(pageWithSidebar(
   mainPanel(
     tabsetPanel(type="tabs",
       tabPanel("Prediction",
+        h3("Word Prediction"),
         verbatimTextOutput("predicted_word")
       ),
       tabPanel("Table",
-        h2("Predicted Words Ranked by Probability"),
-        dataTableOutput('prediction_table'))
+        h3("Predicted Words Ranked by Probability"),
+        dataTableOutput('prediction_table')),
+      tabPanel("Plot",
+        h3("Plot of Predicted Words"),
+        plotOutput("prediction_plot"))
     )
   )
   
