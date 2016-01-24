@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(pageWithSidebar(
   
-  headerPanel("N-Gram World Prediction"),
+  headerPanel("N-Gram Word Prediction"),
   
   sidebarPanel(
     
@@ -15,7 +15,10 @@ shinyUI(pageWithSidebar(
     tabsetPanel(type="tabs",
       tabPanel("Prediction",
         verbatimTextOutput("predicted_word")
-      )
+      ),
+      tabPanel("Table",
+        h2("Predicted Words Ranked by Probability"),
+        dataTableOutput('prediction_table'))
     )
   )
   

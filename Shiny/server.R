@@ -15,6 +15,10 @@ shinyServer(function(input,output) {
   output$predicted_word <- renderText({
     PredictionTable()[1]$WORD
   })
+  
+  output$prediction_table <- renderDataTable({ 
+    head(PredictionTable(), 10)
+    }, options = list( pageLength = 10, paging = FALSE, searching = FALSE) )
 
   }
 )
